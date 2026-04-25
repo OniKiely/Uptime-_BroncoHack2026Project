@@ -1,19 +1,44 @@
-{    
-    "manifest_version": 3,
-    "name": "N/A",
-    "description": "N/A",
-    "version": "1.0",
-    "action": {
-        "default_popup": "popup/popup.html"
-    },
-    "icons": {
-        
-    },
-    "background": {
-        "service_worker": "background.js",
-        "type": "module"
-    },
-    "permissions": [
-        "storage"
-    ]
+{
+  "manifest_version": 3,
+  "name": "Uptime!",
+  "description": "Smart sitting reminder that rewards your breaks with fun AI-generated facts.",
+  "version": "1.0",
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+
+  "permissions": [
+    "storage",
+    "alarms",
+    "idle",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*"
+  ]
 }
