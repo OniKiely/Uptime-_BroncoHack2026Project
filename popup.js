@@ -27,6 +27,7 @@ async function refresh() {
   updateStats(state);
   updateStreak(state);
   updateDemoBadge(state);
+  updateSnoozeButton(state.snoozeUsed || false);
 }
 
 // ── Timer display ─────────────────────────────────────────────────────────────
@@ -36,11 +37,16 @@ function updateTimer(state) {
   document.getElementById('timer-display').textContent = formatMins(mins);
   document.getElementById('quip').textContent = getQuip(mins, state.minutesUntilBreak, state.breakCount);
 
-  // Swap logo icon based on how long they've been sitting
+  // Show when the current session started (e.g. "Started at 2:34 PM")
+  if (state.sessionStart) {
+    const t = new Date(state.sessionStart).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('session-start').textContent = `Started at ${t}`;
+  }
+
+  // Tint the otter based on how long they've been sitting
   const icon = document.getElementById('logo-icon');
-  if (mins >= 60)      icon.textContent = '😩';
-  else if (mins >= 30) icon.textContent = '😐';
-  else                 icon.textContent = '🧍';
+  icon.classList.toggle('warn',   mins >= 30 && mins < 60);
+  icon.classList.toggle('danger', mins >= 60);
 }
 
 // ── Progress bar ──────────────────────────────────────────────────────────────
@@ -55,8 +61,12 @@ function updateProgress(state) {
   fill.classList.toggle('warn', pct >= 80);
 
   const eta = state.minutesUntilBreak;
-  document.getElementById('break-countdown').textContent =
-    eta != null ? `in ${eta}m` : '—';
+  let etaText;
+  if (state.breakInProgress)  etaText = 'stand up! 🎁';
+  else if (eta == null)       etaText = '—';
+  else if (eta === 0)         etaText = 'now!';
+  else                        etaText = `in ${eta}m`;
+  document.getElementById('break-countdown').textContent = etaText;
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
@@ -86,6 +96,7 @@ function updateDemoBadge(state) {
 // ── Cheeky copy ───────────────────────────────────────────────────────────────
 
 function getQuip(mins, minsUntilBreak, breakCount) {
+  if (mins === 0) return "Timer is running — we've got your back. 👍";
   if (mins < 5)  return "Just getting started. Your spine approves. 👍";
   if (mins < 20) return `${mins}m in. Still in the green. Carry on.`;
   if (mins < 35) return `${mins}m sitting. Your lumbar is watching you.`;
@@ -97,11 +108,18 @@ function getQuip(mins, minsUntilBreak, breakCount) {
 // ── Buttons ───────────────────────────────────────────────────────────────────
 
 async function onSnooze() {
+  const state = await chrome.runtime.sendMessage({ type: 'GET_STATE' });
+  if (state.snoozeUsed) return; // guard against double-click
   await chrome.runtime.sendMessage({ type: 'SNOOZE' });
+  updateSnoozeButton(true);
+}
+
+// Reflect snooze state on the button — called every refresh cycle
+function updateSnoozeButton(used) {
   const btn = document.getElementById('snooze-btn');
-  btn.textContent = 'Snoozed ✓';
-  btn.disabled = true;
-  setTimeout(() => { btn.textContent = '+15 min'; btn.disabled = false; }, 3000);
+  btn.disabled = used;
+  btn.textContent = used ? 'You need this break 😅' : 'Snooze 15m';
+  btn.classList.toggle('btn-disabled', used);
 }
 
 async function onBreakNow() {
@@ -127,17 +145,17 @@ async function onLogoClick() {
     const next = !state.demoMode;
     await chrome.runtime.sendMessage({ type: 'SET_DEMO_MODE', enabled: next });
     await refresh();
-    flashLogo(next);
+    flashLogo();
     return;
   }
 
   logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
 }
 
-function flashLogo(demoOn) {
+function flashLogo() {
   const icon = document.getElementById('logo-icon');
-  icon.textContent = demoOn ? '⚡' : '🧍';
-  setTimeout(() => { icon.textContent = demoOn ? '⚡' : '🧍'; }, 800);
+  icon.style.transform = 'scale(1.4)';
+  setTimeout(() => { icon.style.transform = ''; }, 300);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

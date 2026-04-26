@@ -66,9 +66,21 @@ function revealReward(reward) {
   document.getElementById('reward-headline').textContent = reward.headline;
   document.getElementById('reward-content').textContent = reward.content;
 
+  // Hide "Learn more" for fictional content — there's nothing real to search for
+  const learnMore = document.getElementById('learn-more');
+  if (reward.type === 'FAKE_STUDY') {
+    learnMore.style.display = 'none';
+  } else {
+    const query = encodeURIComponent(reward.headline + ' fact');
+    learnMore.href = `https://www.google.com/search?q=${query}`;
+  }
+
   // Swap screens
   document.getElementById('waiting-screen').classList.add('hidden');
   document.getElementById('reveal-screen').classList.remove('hidden');
+
+  // Apply themed background + spawn particles
+  spawnParticles(reward.emoji, reward.type);
 
   // Small delay so the card is in the DOM before we trigger the flip
   requestAnimationFrame(() => {
@@ -76,6 +88,29 @@ function revealReward(reward) {
       document.getElementById('reward-card').classList.add('flipped');
     });
   });
+}
+
+// ── Particles ─────────────────────────────────────────────────────────────────
+
+function spawnParticles(emoji, type) {
+  // Shift background to the reward's theme
+  document.body.className = `theme-${type}`;
+
+  const COUNT = 18;
+
+  for (let i = 0; i < COUNT; i++) {
+    const p = document.createElement('span');
+    p.className = 'particle';
+    p.textContent = emoji;
+    p.style.left            = `${Math.random() * 100}vw`;
+    p.style.fontSize        = `${1.2 + Math.random() * 2}rem`;
+    p.style.animationDuration  = `${5 + Math.random() * 5}s`;
+    p.style.animationDelay     = `${Math.random() * 4}s`;
+    // Slight horizontal drift via a random horizontal offset animation
+    p.style.setProperty('--drift', `${(Math.random() - 0.5) * 120}px`);
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
 }
 
 // ── Buttons ───────────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@
     <!-- Header — click logo 3x to activate demo mode -->
     <header class="header">
       <div class="logo" id="logo">
-        <span class="logo-icon" id="logo-icon">🧍</span>
+        <img class="logo-icon" id="logo-icon" src="icons/icon48.png" alt="Uptime!" />
         <span class="logo-name">Uptime!</span>
       </div>
       <span class="demo-badge hidden" id="demo-badge">DEMO MODE</span>
@@ -20,9 +20,12 @@
 
     <!-- Session timer + cheeky copy -->
     <section class="timer-section">
-      <p class="timer-label">Sitting for</p>
+      <p class="timer-label">
+        <span class="pulse-dot"></span>Sitting for
+      </p>
       <div class="timer-display" id="timer-display">0m</div>
-      <p class="quip" id="quip">Checking in…</p>
+      <p class="session-start" id="session-start">Started at —</p>
+      <p class="quip" id="quip">Timer is running — we've got your back.</p>
     </section>
 
     <!-- Progress bar toward next break -->
@@ -57,7 +60,7 @@
 
     <!-- Action buttons -->
     <div class="actions">
-      <button class="btn btn-secondary" id="snooze-btn">+15 min</button>
+      <button class="btn btn-secondary" id="snooze-btn">Snooze 15m</button>
       <button class="btn btn-primary"   id="break-btn">Break now</button>
     </div>
     <div class="actions">

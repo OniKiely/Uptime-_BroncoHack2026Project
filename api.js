@@ -43,18 +43,27 @@ const FALLBACK_REWARDS = [
 
 // ── Prompt builder ────────────────────────────────────────────────────────────
 
-function buildPrompt(siteCategory, breakCount) {
-  return `The user just completed break #${breakCount} today. They were working on: ${siteCategory}. Randomly pick ONE reward type from this list and generate it:
+const REWARD_TYPES = ['ANIMAL', 'SPACE', 'HISTORY', 'SCIENCE', 'FAKE_STUDY'];
 
-1. ANIMAL — A micro-story or surprising fact about an obscure or cute animal. Include the animal's name as the headline.
-2. SPACE — A mind-bending fact about space or the universe that makes reality feel strange.
-3. HISTORY — A genuinely weird or funny historical fact almost nobody knows.
-4. SCIENCE — A counterintuitive science fact that sounds fake but is real.
-5. FAKE_STUDY — A made-up but completely plausible-sounding scientific study with an absurd finding. Label it clearly as "fictional" in the content.
+const REWARD_INSTRUCTIONS = {
+  ANIMAL:     'A micro-story or surprising fact about an obscure or cute animal. Include the animal\'s name as the headline.',
+  SPACE:      'A mind-bending fact about space or the universe that makes reality feel strange.',
+  HISTORY:    'A genuinely weird or funny historical fact almost nobody knows.',
+  SCIENCE:    'A counterintuitive science fact that sounds fake but is real.',
+  FAKE_STUDY: 'A made-up but completely plausible-sounding scientific study with an absurd finding. Label it clearly as "fictional" in the content.',
+};
+
+function buildPrompt(siteCategory, breakCount) {
+  // Pick the type here in JS so the model can't default to ANIMAL every time
+  const type = REWARD_TYPES[Math.floor(Math.random() * REWARD_TYPES.length)];
+
+  return `The user just completed break #${breakCount} today. They were working on: ${siteCategory}.
+
+Generate a "${type}" reward: ${REWARD_INSTRUCTIONS[type]}
 
 Respond ONLY with valid JSON, no markdown, no preamble:
 {
-  "type": "ANIMAL" | "SPACE" | "HISTORY" | "SCIENCE" | "FAKE_STUDY",
+  "type": "${type}",
   "headline": "short punchy title",
   "content": "the fact or story, max 2-3 sentences",
   "emoji": "one relevant emoji"
@@ -79,16 +88,24 @@ export async function generateReward(siteCategory = 'other', breakCount = 1) {
           parts: [{ text: buildPrompt(siteCategory, breakCount) }],
         }],
         generationConfig: {
-          temperature: 1.2,   // higher = more creative/random picks
+          temperature: 1.2,
           maxOutputTokens: 300,
+          thinkingConfig: { thinkingBudget: 0 }, // disable thinking — not needed for fun facts
         },
       }),
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      console.warn('[Uptime] Gemini API error:', response.status, errBody?.error?.message);
+      throw new Error(`HTTP ${response.status}`);
+    }
 
     const data = await response.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    // Join all parts — Gemini 2.5 may return thinking + answer as separate parts
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const raw = parts.map(p => p.text ?? '').join('');
+    console.log('[Uptime] Gemini raw response:', raw);
 
     // Gemini sometimes wraps JSON in ```json ... ``` — strip it
     const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
