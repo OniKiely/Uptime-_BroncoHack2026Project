@@ -7,27 +7,31 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="titleContainer">
         <h1 class="title">UpTime!</h1>
     </div>
 
     <div class="container">
         <h4>Current Session:</h4>
         <label id="currentTime">00:00:00</label>
-        <div class="progressBar"></div>
+        <div class="progressTrack">
+            <div class="progressFill" id="progressFill"></div>
+        </div>
         <label id="timeLeft">00:00 till break</label>
 
     </div>
-    <div class="buttonContainer">
+    <div class="container">
+        <div class="buttonContainer">
         <!-- this button is for starting break earlie before time is up-->
-        <button id="startBreakButton">Start Break</button>
+        <button class="button" id="startBreakButton">Start Break</button>
         <!-- adds an extra 15 mins to the timer-->
-        <button id="add15MinsButton">Add 15 mins</button>
+        <button class="button" id="add15MinsButton">Add 15 mins</button>
     </div>
-
+    <br>
     <div class="buttonContainer">
         <!-- takes user to collection page -->
         <button id="collectionButton">Collection</button>
+    </div>
     </div>
 
 </body>
