@@ -13,16 +13,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--white);
   width: 500px;
-  height: 380px;
+  min-height: 380px;
   color: var(--text);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.9rem 1rem 0.6rem;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 .header {
@@ -49,55 +41,122 @@ body {
   color: var(--green);
 }
 
+/* ── Today's sessions stats ───────────────────────────────────────────────── */
+
+.stats-section {
+  padding: 0.6rem 1rem 0.4rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stats-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.stats-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.stats-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--green-light);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.stats-pill strong {
+  color: var(--green);
+}
+
+.stats-empty {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ── Rewards grid ─────────────────────────────────────────────────────────── */
+
 .grid-container {
-    height: 300px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-    gap: 0.4em;
-    grid-auto-rows: 1fr;
-    background-color: var(--green-light);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 120px; /* fixed row height = consistent cards */
+  gap: 0.5em;
+  background-color: var(--green-light);
+  padding: 0.8em;
+  border-radius: 0;
+}
 
-    justify-items: center;
-    align-items: center;
-    justify-content: center;
-    margin-top: 0.8em;
-    padding: 0.8em;
-
-    overflow-x: auto;
+.empty-msg {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 2rem 1rem;
 }
 
 .item {
-    height: 1.3em;
-    width: 1.3em;
-    padding: 1.3em;
-    background-color: var(--white);
-    color: white;
-    border-radius: 8px;
-    font-size: 2rem;
-
-    display: grid;
-    grid-template-columns: 1fr;
-
-    justify-items: center;
-    align-items: top;
-    justify-content: center;
-    gap: 5px;
+  background: var(--white);
+  border-radius: 8px;
+  padding: 0.6em 0.4em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-align: center;
+  overflow: hidden;   /* clip any overflow — keeps all cards identical */
 }
 
+.emoji {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
 
 .headline {
-    white-space: nowrap;
-    font-size: clamp(12px, 2.5vw, 18px);
-    color: var(--text);
-    font-family: sans-serif;
+  font-size: 0.62rem;
+  color: var(--text);
+  line-height: 1.3;
+  /* cap at 3 lines — prevents tall cards for long facts */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .type {
-    white-space: nowrap;
-    font-size: 0.8rem;
-    color: var(--green);
-    font-family: sans-serif;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green);
+  background: var(--green-light);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+/* ── Show more ────────────────────────────────────────────────────────────── */
+
+.show-more-row {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 1rem 0;
+}
+
+.show-more-row .btn {
+  flex: none;
+  font-size: 0.8rem;
+  padding: 0.4rem 1.5rem;
 }
 
 /* ── Action buttons ───────────────────────────────────────────────────────── */

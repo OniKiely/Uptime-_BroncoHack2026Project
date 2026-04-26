@@ -9,26 +9,25 @@
 <body>
     <header class="header">
       <div class="Title">
-        <span class="Title-icon" id="logo-icon">📖</span>
-        <span class="Title-name">Collection:</span>
+        <span class="Title-icon">📖</span>
+        <span class="Title-name">Collection</span>
       </div>
     </header>
 
-    <div class="grid-container" id="grid-container">
-        <div class="item" id="item-button" item-data="My info">
-            <!-- Example -->
-            <span class="headline">The Mantis Shrimp</span>
-            <span class="emoji">🦐</span>
-            <span class="type">Animal</span>
-        </div>
-    </div>
+    <!-- Today's time by category -->
+    <section class="stats-section">
+      <p class="stats-title">Today's sessions</p>
+      <div class="stats-list" id="stats-list"></div>
+    </section>
+
+    <!-- Earned rewards -->
+    <div class="grid-container" id="grid-container"></div>
+    <div class="show-more-row" id="show-more-row"></div>
 
     <div class="actions">
-        <!-- takes user back to main menu -->
-        <button class="btn" id="mainMenuButton">Back</button>
+        <button class="btn btn-secondary" id="mainMenuButton">← Back</button>
     </div>
+
+    <script src="collection.js"></script>
 </body>
-
-<script src="collection.js"></script>
-
 </html>

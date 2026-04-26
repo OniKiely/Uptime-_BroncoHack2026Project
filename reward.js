@@ -30,6 +30,7 @@ function startCountdown(rewardPromise) {
   let secondsLeft = COUNTDOWN_SECONDS;
   const numberEl = document.getElementById('countdown-number');
   const circleEl = document.getElementById('countdown-circle');
+  const pauseMsg  = document.getElementById('pause-msg');
 
   updateRing(circleEl, numberEl, secondsLeft);
 
@@ -42,15 +43,35 @@ function startCountdown(rewardPromise) {
       rewardData = await rewardPromise;
       revealReward(rewardData);
     }
-
-        // check to see if user swaps tabs
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) {
-        clearInterval(tickInterval);
-      }
-    });
-
   }, 1000);
+
+  // Added once — pause countdown when user switches away, resume on return
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(tickInterval);
+      tickInterval = null;
+      document.title = '⏸ Timer paused — Uptime!';
+    } else {
+      document.title = 'Uptime! — Break Time';
+
+      if (!breakCompleted && secondsLeft > 0) {
+        // Show the message when user returns so they actually see it
+        pauseMsg.classList.remove('hidden');
+        setTimeout(() => pauseMsg.classList.add('hidden'), 2500);
+
+        tickInterval = setInterval(async () => {
+          secondsLeft -= 1;
+          updateRing(circleEl, numberEl, secondsLeft);
+
+          if (secondsLeft <= 0) {
+            clearInterval(tickInterval);
+            rewardData = await rewardPromise;
+            revealReward(rewardData);
+          }
+        }, 1000);
+      }
+    }
+  });
 }
 
 // Update the SVG ring and number display
@@ -67,6 +88,12 @@ function revealReward(reward) {
 
   // Tell background.js the break is done (updates streak, breakCount, session)
   chrome.runtime.sendMessage({ type: 'BREAK_COMPLETED' });
+
+  // Save to collection (cap at 50 entries)
+  chrome.storage.local.get(['savedRewards'], ({ savedRewards = [] }) => {
+    const updated = [{ ...reward, earnedAt: Date.now() }, ...savedRewards].slice(0, 50);
+    chrome.storage.local.set({ savedRewards: updated });
+  });
 
   // Populate card content
   document.getElementById('reward-type').textContent = reward.type.replace('_', ' ');

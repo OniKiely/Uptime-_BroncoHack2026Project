@@ -128,6 +128,18 @@ body[class*="theme-"] .card-face {
   margin-top: 0.5rem;
 }
 
+.pause-msg {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--white);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.pause-msg.hidden { display: none; }
+
 /* ── Reveal screen ────────────────────────────────────────────────────────── */
 
 .card-scene {

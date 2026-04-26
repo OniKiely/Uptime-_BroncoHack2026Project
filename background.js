@@ -21,6 +21,7 @@ async function getState() {
     recentTabSwitches: 0,
     lastMidnightReset: new Date().toDateString(),
     demoMode: false,
+    timeByCategory: {},
   };
   const stored = await chrome.storage.local.get(null);
   return { ...defaults, ...stored };
@@ -49,6 +50,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     lastMidnightReset: new Date().toDateString(),
     demoMode: false,
     snoozeUsed: false,
+    timeByCategory: {},
   });
   scheduleBreakAlarm();
   scheduleMidnightReset();
@@ -91,6 +93,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await handleBreakAlarm();
   } else if (alarm.name === 'tick') {
     await updateBadge();
+    await trackCategoryTime();
   } else if (alarm.name === 'midnight') {
     const state = await getState();
     await checkMidnightReset(state);
@@ -100,7 +103,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
 // ── Break alarm handler ───────────────────────────────────────────────────────
 
-async function handleBreakAlarm() {
+async function handleBreakAlarm(forced = false) {
   // Query actual idle state directly — don't trust stored value (service worker can be killed)
   const idleState = await chrome.idle.queryState(IDLE_THRESHOLD_SECONDS);
   if (idleState !== 'active') {
@@ -110,17 +113,19 @@ async function handleBreakAlarm() {
 
   const state = await getState();
 
-  // Never interrupt during meetings — check again in 5 min
-  if (state.siteCategory === 'meetings') {
-    chrome.alarms.create('break', { delayInMinutes: 5 });
-    return;
-  }
+  if (!forced) {
+    // Never interrupt during meetings — check again in 5 min
+    if (state.siteCategory === 'meetings') {
+      chrome.alarms.create('break', { delayInMinutes: 5 });
+      return;
+    }
 
-  // Skip if user is rapidly switching tabs (in flow) — check again in 5 min
-  const timeSinceLastSwitch = Date.now() - (state.lastTabSwitchTime || 0);
-  if (state.recentTabSwitches >= 3 && timeSinceLastSwitch < 60000) {
-    chrome.alarms.create('break', { delayInMinutes: 5 });
-    return;
+    // Skip if user is rapidly switching tabs (in flow) — check again in 5 min
+    const timeSinceLastSwitch = Date.now() - (state.lastTabSwitchTime || 0);
+    if (state.recentTabSwitches >= 3 && timeSinceLastSwitch < 60000) {
+      chrome.alarms.create('break', { delayInMinutes: 5 });
+      return;
+    }
   }
 
   // Don't open a second reward tab if one is already on screen
@@ -137,6 +142,15 @@ async function handleBreakAlarm() {
 
   const tab = await chrome.tabs.create({ url: chrome.runtime.getURL('reward.html') });
   await setState({ rewardTabId: tab.id });
+}
+
+// Add 1 minute to today's tally for the current site category
+async function trackCategoryTime() {
+  const state = await getState();
+  if (!state.siteCategory) return;
+  const timeByCategory = state.timeByCategory || {};
+  timeByCategory[state.siteCategory] = (timeByCategory[state.siteCategory] || 0) + 1;
+  await setState({ timeByCategory });
 }
 
 // ── Idle detection ────────────────────────────────────────────────────────────
@@ -167,6 +181,23 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   await setState({ breakInProgress: false, rewardTabId: null });
   chrome.alarms.create('break', { delayInMinutes: 5 });
   await updateBadge();
+
+  const earlyCloseMessages = {
+    coding:   'Still coding? 💻 Timer reset for 5 min — your wrists need a break!',
+    social:   'Back to the scroll? 😅 We reset for 5 min. Go stand up!',
+    video:    'Still watching? 🍿 Timer reset for 5 min — your eyes need a break.',
+    meetings: 'Back to the call? 😢 We reset for 5 min. Stretch when you can!',
+    other:    'Tab closed early 😢 Timer reset for 5 min. Remember to stand up!',
+  };
+  const nudgeMsg = earlyCloseMessages[state.siteCategory] || earlyCloseMessages.other;
+
+  await chrome.notifications.create('break-skipped', {
+    type: 'basic',
+    iconUrl: 'icons/icon48.png',
+    title: 'Uptime! — We saw that 👀',
+    message: nudgeMsg,
+    priority: 2,
+  });
 });
 
 // ── Tab switch tracking (rapid switching = user is in flow, don't interrupt) ──
@@ -201,7 +232,7 @@ async function handleMessage(message) {
       return { ok: true };
 
     case 'BREAK_NOW':
-      await handleBreakAlarm();
+      await handleBreakAlarm(true);
       return { ok: true };
 
     case 'BREAK_COMPLETED':
@@ -321,6 +352,7 @@ async function checkMidnightReset(state) {
       breakCount: 0,
       sessionStart: Date.now(),
       lastMidnightReset: today,
+      timeByCategory: {},
     });
   }
 }

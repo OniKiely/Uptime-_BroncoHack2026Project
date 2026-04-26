@@ -1,36 +1,91 @@
-// BUTTONS
-const mainMenuButton = document.getElementById("mainMenuButton");
+const mainMenuButton = document.getElementById('mainMenuButton');
+const gridContainer  = document.getElementById('grid-container');
+const statsList      = document.getElementById('stats-list');
+const showMoreRow    = document.getElementById('show-more-row');
 
-// CONTAINER
-const gridContainer = document.getElementById("grid-container");
+const INITIAL_SHOW = 6; // 2 rows of 3
 
-// returns user to main menu
 mainMenuButton.addEventListener('click', async () => {
-    await chrome.action.setPopup({popup: 'popup.html'});
-    window.location.assign('popup.html');
-})
+  await chrome.action.setPopup({ popup: 'popup.html' });
+  window.location.assign('popup.html');
+});
 
-// use to add a new reward onto the collection
-function addItem(headline, emoji, type) {
-    const newItem = document.createElement('div');
-    newItem.classList.add(`item`);
+const CATEGORY_META = {
+  coding:   { emoji: '💻', label: 'Coding' },
+  social:   { emoji: '📱', label: 'Social' },
+  video:    { emoji: '🎬', label: 'Video' },
+  meetings: { emoji: '📹', label: 'Meetings' },
+  other:    { emoji: '🌐', label: 'Browsing' },
+};
 
-    const newHeadline = document.createElement('span');
-    newItem.appendChild(newHeadline);
-    newHeadline.classList.add(`headline`);
-    newHeadline.textContent = headline;
+async function init() {
+  const { savedRewards = [], timeByCategory = {} } =
+    await chrome.storage.local.get(['savedRewards', 'timeByCategory']);
 
-    const newEmoji = document.createElement('span');
-    newItem.appendChild(newEmoji);
-    newEmoji.classList.add(`emoji`);
-    newEmoji.textContent = emoji;
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  const entries = Object.entries(timeByCategory).filter(([, mins]) => mins > 0);
+  if (entries.length === 0) {
+    statsList.innerHTML = '<span class="stats-empty">No sessions recorded yet today.</span>';
+  } else {
+    entries.sort((a, b) => b[1] - a[1]);
+    for (const [cat, mins] of entries) {
+      const meta = CATEGORY_META[cat] || { emoji: '🌐', label: cat };
+      const pill = document.createElement('div');
+      pill.className = 'stats-pill';
+      pill.innerHTML = `<span>${meta.emoji} ${meta.label}</span><strong>${formatMins(mins)}</strong>`;
+      statsList.appendChild(pill);
+    }
+  }
 
-    const newType = document.createElement('span');
-    newItem.appendChild(newType);
-    newType.classList.add(`type`);
-    newType.textContent = type;
+  // ── Rewards ────────────────────────────────────────────────────────────────
+  if (savedRewards.length === 0) {
+    gridContainer.innerHTML = '<p class="empty-msg">Complete a break to earn your first reward! 🎁</p>';
+    return;
+  }
 
+  const visible  = savedRewards.slice(0, INITIAL_SHOW);
+  const hidden   = savedRewards.slice(INITIAL_SHOW);
 
-    gridContainer.appendChild(newItem);
-    console.log(newItem.textContent);
+  visible.forEach(r => addItem(r.headline, r.emoji, r.type));
+
+  if (hidden.length > 0) {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-secondary';
+    btn.textContent = `Show ${hidden.length} more`;
+    showMoreRow.appendChild(btn);
+
+    btn.addEventListener('click', () => {
+      hidden.forEach(r => addItem(r.headline, r.emoji, r.type));
+      showMoreRow.remove();
+    });
+  }
 }
+
+function addItem(headline, emoji, type) {
+  const item = document.createElement('div');
+  item.className = 'item';
+
+  const emojiEl = document.createElement('span');
+  emojiEl.className = 'emoji';
+  emojiEl.textContent = emoji;
+
+  const headlineEl = document.createElement('span');
+  headlineEl.className = 'headline';
+  headlineEl.textContent = headline;
+
+  const typeEl = document.createElement('span');
+  typeEl.className = 'type';
+  typeEl.textContent = type.replace('_', ' ');
+
+  item.append(emojiEl, headlineEl, typeEl);
+  gridContainer.appendChild(item);
+}
+
+function formatMins(totalMins) {
+  if (totalMins < 60) return `${totalMins}m`;
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+}
+
+init();
