@@ -94,13 +94,14 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // ── Break alarm handler ───────────────────────────────────────────────────────
 
 async function handleBreakAlarm() {
-  const state = await getState();
-
-  // Skip if user is already idle — no point interrupting
-  if (state.isIdle) {
+  // Query actual idle state directly — don't trust stored value (service worker can be killed)
+  const idleState = await chrome.idle.queryState(IDLE_THRESHOLD_SECONDS);
+  if (idleState !== 'active') {
     scheduleBreakAlarm();
     return;
   }
+
+  const state = await getState();
 
   // Never interrupt during meetings — check again in 5 min
   if (state.siteCategory === 'meetings') {
@@ -114,6 +115,10 @@ async function handleBreakAlarm() {
     chrome.alarms.create('break', { delayInMinutes: 5 });
     return;
   }
+
+  // Don't open a second reward tab if one is already on screen
+  const existing = await chrome.tabs.query({ url: chrome.runtime.getURL('reward.html') });
+  if (existing.length > 0) return;
 
   // Add current session minutes to today's total before opening break screen
   const sessionMinutes = Math.round((Date.now() - state.sessionStart) / 60000);
@@ -134,9 +139,11 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
   await setState({ isIdle });
 
   if (!isIdle) {
-    // User is back — restart session clock and reschedule break alarm
+    // User is back — restart session clock
     await setState({ sessionStart: Date.now() });
-    scheduleBreakAlarm();
+    // Only reschedule if the alarm was cleared while idle (don't stack alarms)
+    const existing = await chrome.alarms.get('break');
+    if (!existing) scheduleBreakAlarm();
   }
 });
 

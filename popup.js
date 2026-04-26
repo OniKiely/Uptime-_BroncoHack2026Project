@@ -35,6 +35,12 @@ function updateTimer(state) {
   document.getElementById('timer-display').textContent = formatMins(mins);
   document.getElementById('quip').textContent = getQuip(mins, state.minutesUntilBreak, state.breakCount);
 
+  // Show when the current session started (e.g. "Started at 2:34 PM")
+  if (state.sessionStart) {
+    const t = new Date(state.sessionStart).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('session-start').textContent = `Started at ${t}`;
+  }
+
   // Swap logo icon based on how long they've been sitting
   const icon = document.getElementById('logo-icon');
   if (mins >= 60)      icon.textContent = '😩';
@@ -85,6 +91,7 @@ function updateDemoBadge(state) {
 // ── Cheeky copy ───────────────────────────────────────────────────────────────
 
 function getQuip(mins, minsUntilBreak, breakCount) {
+  if (mins === 0) return "Timer is running — we've got your back. 👍";
   if (mins < 5)  return "Just getting started. Your spine approves. 👍";
   if (mins < 20) return `${mins}m in. Still in the green. Carry on.`;
   if (mins < 35) return `${mins}m sitting. Your lumbar is watching you.`;
