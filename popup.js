@@ -42,11 +42,10 @@ function updateTimer(state) {
     document.getElementById('session-start').textContent = `Started at ${t}`;
   }
 
-  // Swap logo icon based on how long they've been sitting
+  // Tint the otter based on how long they've been sitting
   const icon = document.getElementById('logo-icon');
-  if (mins >= 60)      icon.textContent = '😩';
-  else if (mins >= 30) icon.textContent = '😐';
-  else                 icon.textContent = '🧍';
+  icon.classList.toggle('warn',   mins >= 30 && mins < 60);
+  icon.classList.toggle('danger', mins >= 60);
 }
 
 // ── Progress bar ──────────────────────────────────────────────────────────────
@@ -61,8 +60,12 @@ function updateProgress(state) {
   fill.classList.toggle('warn', pct >= 80);
 
   const eta = state.minutesUntilBreak;
-  document.getElementById('break-countdown').textContent =
-    eta != null ? `in ${eta}m` : '—';
+  let etaText;
+  if (state.breakInProgress)  etaText = 'stand up! 🎁';
+  else if (eta == null)       etaText = '—';
+  else if (eta === 0)         etaText = 'now!';
+  else                        etaText = `in ${eta}m`;
+  document.getElementById('break-countdown').textContent = etaText;
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
@@ -135,17 +138,17 @@ async function onLogoClick() {
     const next = !state.demoMode;
     await chrome.runtime.sendMessage({ type: 'SET_DEMO_MODE', enabled: next });
     await refresh();
-    flashLogo(next);
+    flashLogo();
     return;
   }
 
   logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
 }
 
-function flashLogo(demoOn) {
+function flashLogo() {
   const icon = document.getElementById('logo-icon');
-  icon.textContent = demoOn ? '⚡' : '🧍';
-  setTimeout(() => { icon.textContent = demoOn ? '⚡' : '🧍'; }, 800);
+  icon.style.transform = 'scale(1.4)';
+  setTimeout(() => { icon.style.transform = ''; }, 300);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
