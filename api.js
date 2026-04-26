@@ -79,16 +79,24 @@ export async function generateReward(siteCategory = 'other', breakCount = 1) {
           parts: [{ text: buildPrompt(siteCategory, breakCount) }],
         }],
         generationConfig: {
-          temperature: 1.2,   // higher = more creative/random picks
+          temperature: 1.2,
           maxOutputTokens: 300,
+          thinkingConfig: { thinkingBudget: 0 }, // disable thinking — not needed for fun facts
         },
       }),
     });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      console.warn('[Uptime] Gemini API error:', response.status, errBody?.error?.message);
+      throw new Error(`HTTP ${response.status}`);
+    }
 
     const data = await response.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    // Join all parts — Gemini 2.5 may return thinking + answer as separate parts
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const raw = parts.map(p => p.text ?? '').join('');
+    console.log('[Uptime] Gemini raw response:', raw);
 
     // Gemini sometimes wraps JSON in ```json ... ``` — strip it
     const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();

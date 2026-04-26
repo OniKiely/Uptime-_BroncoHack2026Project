@@ -227,3 +227,5 @@ body {
 
 .btn-primary   { background: var(--green); color: white; }
 .btn-secondary { background: var(--green-light); color: var(--green); }
+.btn-disabled  { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+.btn-disabled:hover { opacity: 1; transform: none; }

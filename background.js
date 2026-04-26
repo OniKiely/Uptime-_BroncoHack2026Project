@@ -48,15 +48,19 @@ chrome.runtime.onInstalled.addListener(async () => {
     recentTabSwitches: 0,
     lastMidnightReset: new Date().toDateString(),
     demoMode: false,
+    snoozeUsed: false,
   });
   scheduleBreakAlarm();
   scheduleMidnightReset();
+  scheduleTickAlarm();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   const state = await getState();
   await checkMidnightReset(state);
   scheduleBreakAlarm();
+  scheduleTickAlarm();
+  await updateBadge();
 });
 
 // ── Alarm scheduling ──────────────────────────────────────────────────────────
@@ -68,6 +72,7 @@ function scheduleBreakAlarm() {
     const demo = data.demoMode || false;
     const threshold = demo ? 2 : (data.sittingThreshold || DEFAULT_THRESHOLD);
     chrome.alarms.create('break', { delayInMinutes: threshold });
+    updateBadge();
   });
 }
 
@@ -84,6 +89,8 @@ function scheduleMidnightReset() {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'break') {
     await handleBreakAlarm();
+  } else if (alarm.name === 'tick') {
+    await updateBadge();
   } else if (alarm.name === 'midnight') {
     const state = await getState();
     await checkMidnightReset(state);
@@ -125,9 +132,11 @@ async function handleBreakAlarm() {
   await setState({
     totalSittingToday: (state.totalSittingToday || 0) + sessionMinutes,
     recentTabSwitches: 0,
+    breakInProgress: true,
   });
 
-  chrome.tabs.create({ url: chrome.runtime.getURL('reward.html') });
+  const tab = await chrome.tabs.create({ url: chrome.runtime.getURL('reward.html') });
+  await setState({ rewardTabId: tab.id });
 }
 
 // ── Idle detection ────────────────────────────────────────────────────────────
@@ -145,6 +154,19 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
     const existing = await chrome.alarms.get('break');
     if (!existing) scheduleBreakAlarm();
   }
+});
+
+// ── Reward tab close detection ────────────────────────────────────────────────
+
+// If user closes the reward tab before completing the break, remind them again in 5 min
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  const state = await getState();
+  if (!state.breakInProgress || state.rewardTabId !== tabId) return;
+
+  // Tab was closed early — clear the flag and reschedule a nudge
+  await setState({ breakInProgress: false, rewardTabId: null });
+  chrome.alarms.create('break', { delayInMinutes: 5 });
+  await updateBadge();
 });
 
 // ── Tab switch tracking (rapid switching = user is in flow, don't interrupt) ──
@@ -171,9 +193,11 @@ async function handleMessage(message) {
       return { ok: true };
 
     case 'SNOOZE':
-      // Delay next break by 15 minutes from now
+      // Delay next break by 15 minutes — only allowed once per session
       chrome.alarms.clear('break');
       chrome.alarms.create('break', { delayInMinutes: 15 });
+      await setState({ snoozeUsed: true });
+      await updateBadge();
       return { ok: true };
 
     case 'BREAK_NOW':
@@ -229,9 +253,62 @@ async function onBreakCompleted() {
     lastBreakTime: Date.now(),
     sessionStart: Date.now(), // reset sitting clock after break
     streak: newStreak,
+    snoozeUsed: false,        // fresh snooze available next session
+    breakInProgress: false,
+    rewardTabId: null,
   });
 
   scheduleBreakAlarm();
+  await updateBadge();
+}
+
+// ── Badge & notification ──────────────────────────────────────────────────────
+
+// Tick every minute to keep the icon badge up to date
+function scheduleTickAlarm() {
+  chrome.alarms.clear('tick');
+  chrome.alarms.create('tick', { periodInMinutes: 1 });
+}
+
+// Update the icon badge with minutes until next break
+async function updateBadge() {
+  const alarm = await chrome.alarms.get('break');
+  if (!alarm) {
+    chrome.action.setBadgeText({ text: '' });
+    return;
+  }
+
+  const minsLeft = Math.max(0, Math.round((alarm.scheduledTime - Date.now()) / 60000));
+
+  // Hide badge when plenty of time left — let the icon breathe
+  if (minsLeft > 10) {
+    chrome.action.setBadgeText({ text: '' });
+    return;
+  }
+
+  // Single character only so it barely clips the corner
+  const label = minsLeft === 0 ? '!' : `${minsLeft}`;
+  chrome.action.setBadgeText({ text: label });
+
+  // Color shifts green → orange → red as break approaches
+  if (minsLeft <= 0) {
+    chrome.action.setBadgeBackgroundColor({ color: '#ef4444' }); // red: overdue
+  } else if (minsLeft <= 5) {
+    chrome.action.setBadgeBackgroundColor({ color: '#f59e0b' }); // orange: soon
+  } else {
+    chrome.action.setBadgeBackgroundColor({ color: '#1D9E75' }); // green: all good
+  }
+
+  // Send a heads-up notification when 5 minutes remain
+  if (minsLeft === 5) {
+    chrome.notifications.create('break-warning', {
+      type: 'basic',
+      iconUrl: 'icons/icon48.png',
+      title: 'Uptime! — Break in 5 minutes 🧍',
+      message: 'Finish your thought. A fun fact is waiting for you.',
+      priority: 1,
+    });
+  }
 }
 
 // ── Midnight daily reset ──────────────────────────────────────────────────────

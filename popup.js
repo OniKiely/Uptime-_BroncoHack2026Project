@@ -26,6 +26,7 @@ async function refresh() {
   updateStats(state);
   updateStreak(state);
   updateDemoBadge(state);
+  updateSnoozeButton(state.snoozeUsed || false);
 }
 
 // ── Timer display ─────────────────────────────────────────────────────────────
@@ -103,11 +104,18 @@ function getQuip(mins, minsUntilBreak, breakCount) {
 // ── Buttons ───────────────────────────────────────────────────────────────────
 
 async function onSnooze() {
+  const state = await chrome.runtime.sendMessage({ type: 'GET_STATE' });
+  if (state.snoozeUsed) return; // guard against double-click
   await chrome.runtime.sendMessage({ type: 'SNOOZE' });
+  updateSnoozeButton(true);
+}
+
+// Reflect snooze state on the button — called every refresh cycle
+function updateSnoozeButton(used) {
   const btn = document.getElementById('snooze-btn');
-  btn.textContent = 'Snoozed ✓';
-  btn.disabled = true;
-  setTimeout(() => { btn.textContent = '+15 min'; btn.disabled = false; }, 3000);
+  btn.disabled = used;
+  btn.textContent = used ? 'You need this break 😅' : 'Snooze 15m';
+  btn.classList.toggle('btn-disabled', used);
 }
 
 async function onBreakNow() {
