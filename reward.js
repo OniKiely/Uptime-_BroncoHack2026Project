@@ -9,6 +9,7 @@ let rewardData = null;
 let tickInterval = null;
 let breakCompleted = false;
 
+
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 async function init() {

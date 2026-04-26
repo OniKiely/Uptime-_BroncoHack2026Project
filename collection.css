@@ -1,0 +1,126 @@
+:root {
+  --green: #1D9E75;
+  --green-light: #e8f7f2;
+  --green-mid: #b2dfd1;
+  --text: #1a1a2e;
+  --muted: #6b7280;
+  --white: #ffffff;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--white);
+  width: 500px;
+  height: 380px;
+  color: var(--text);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem 0.6rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem 0.6rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.Title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  user-select: none;
+}
+
+.Title-icon { font-size: 1.3rem; transition: transform 0.2s; }
+.logo:active .logo-icon { transform: scale(1.3); }
+
+.Title-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.grid-container {
+    height: 300px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 0.4em;
+    grid-auto-rows: 1fr;
+    background-color: var(--green-light);
+
+    justify-items: center;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.8em;
+    padding: 0.8em;
+
+    overflow-x: auto;
+}
+
+.item {
+    height: 1.3em;
+    width: 1.3em;
+    padding: 1.3em;
+    background-color: var(--white);
+    color: white;
+    border-radius: 8px;
+    font-size: 2rem;
+
+    display: grid;
+    grid-template-columns: 1fr;
+
+    justify-items: center;
+    align-items: top;
+    justify-content: center;
+    gap: 5px;
+}
+
+
+.headline {
+    white-space: nowrap;
+    font-size: clamp(12px, 2.5vw, 18px);
+    color: var(--text);
+    font-family: sans-serif;
+}
+
+.type {
+    white-space: nowrap;
+    font-size: 0.8rem;
+    color: var(--green);
+    font-family: sans-serif;
+}
+
+/* ── Action buttons ───────────────────────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+}
+
+.btn {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn:hover  { opacity: 0.85; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary   { background: var(--green); color: white; }
+.btn-secondary { background: var(--green-light); color: var(--green); }

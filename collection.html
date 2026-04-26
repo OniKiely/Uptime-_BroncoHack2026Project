@@ -4,16 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collection</title>
-    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="collection.css">
 </head>
 <body>
-    <div class="container" id="titleContainer">
-        <h1 class="title">Collection:</h1>
+    <header class="header">
+      <div class="Title">
+        <span class="Title-icon" id="logo-icon">📖</span>
+        <span class="Title-name">Collection:</span>
+      </div>
+    </header>
+
+    <div class="grid-container" id="grid-container">
+        <div class="item" id="item-button" item-data="My info">
+            <!-- Example -->
+            <span class="headline">The Mantis Shrimp</span>
+            <span class="emoji">🦐</span>
+            <span class="type">Animal</span>
+        </div>
     </div>
 
-    <div class="buttonContainer">
+    <div class="actions">
         <!-- takes user back to main menu -->
-        <button id="mainMenuButton">Back</button>
+        <button class="btn" id="mainMenuButton">Back</button>
     </div>
 </body>
 

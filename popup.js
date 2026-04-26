@@ -13,6 +13,7 @@ async function init() {
   document.getElementById('snooze-btn').addEventListener('click', onSnooze);
   document.getElementById('break-btn').addEventListener('click', onBreakNow);
   document.getElementById('logo').addEventListener('click', onLogoClick);
+  document.getElementById('collection-btn').addEventListener('click', openCollection);
 }
 
 // ── State refresh (called every second) ──────────────────────────────────────
@@ -107,6 +108,12 @@ async function onBreakNow() {
   await chrome.runtime.sendMessage({ type: 'BREAK_NOW' });
   window.close();
 }
+
+async function openCollection() {
+  await chrome.action.setPopup({popup: "collection.html"});
+  window.location.assign('collection.html');
+}
+
 
 // ── Demo mode: click logo 3x within 2 seconds ─────────────────────────────────
 
