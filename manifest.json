@@ -35,7 +35,8 @@
     "storage",
     "alarms",
     "idle",
-    "tabs"
+    "tabs",
+    "notifications"
   ],
 
   "host_permissions": [
