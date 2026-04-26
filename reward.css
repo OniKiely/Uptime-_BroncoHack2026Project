@@ -19,7 +19,39 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--text);
+  transition: background 0.8s ease;
 }
+
+/* ── Reward type themes ───────────────────────────────────────────────────── */
+body.theme-ANIMAL     { background: linear-gradient(160deg, #1a3d2b, #0d5c3a); }
+body.theme-SPACE      { background: linear-gradient(160deg, #0a0820, #1a0a3d); }
+body.theme-HISTORY    { background: linear-gradient(160deg, #3d1f00, #6b3a00); }
+body.theme-SCIENCE    { background: linear-gradient(160deg, #003d4a, #005a6b); }
+body.theme-FAKE_STUDY { background: linear-gradient(160deg, #3d0a4a, #6b1080); }
+
+/* Card pops more on dark backgrounds */
+body[class*="theme-"] .card-face {
+  box-shadow: 0 12px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Floating emoji particles ─────────────────────────────────────────────── */
+.particle {
+  position: fixed;
+  bottom: -3rem;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  animation: float-up linear forwards;
+}
+
+@keyframes float-up {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg) scale(1);             opacity: 0.9; }
+  70%  { opacity: 0.6; }
+  100% { transform: translateY(-108vh) translateX(var(--drift, 0px)) rotate(400deg) scale(0.3); opacity: 0; }
+}
+
+/* Card scene sits above particles */
+.card-scene { position: relative; z-index: 1; }
 
 /* ── Screens ──────────────────────────────────────────────────────────────── */
 
@@ -104,9 +136,8 @@ body {
 }
 
 .card {
-  position: relative;
+  display: grid;        /* both faces share one cell — card grows to fit content */
   width: 100%;
-  min-height: 380px;
   transform-style: preserve-3d;
   transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -114,8 +145,7 @@ body {
 .card.flipped { transform: rotateY(180deg); }
 
 .card-face {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;    /* stack in the same cell, no fixed height */
   backface-visibility: hidden;
   border-radius: var(--radius);
   background: var(--white);
@@ -125,6 +155,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  min-height: 320px;   /* comfortable minimum, grows beyond this freely */
 }
 
 /* Front: gift icon shown before flip */
@@ -158,11 +189,21 @@ body {
   line-height: 1.3;
 }
 
+.learn-more {
+  font-size: 0.8rem;
+  color: var(--green);
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+.learn-more:hover { opacity: 1; text-decoration: underline; }
+
 .reward-content {
   font-size: 0.95rem;
   line-height: 1.6;
   color: var(--muted);
-  max-width: 36ch;
+  max-width: 44ch;
+  width: 100%;
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
