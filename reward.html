@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Uptime! — Break Time</title>
+  <link rel="stylesheet" href="reward.css" />
+</head>
+<body>
+
+  <!-- Phase 1: countdown while user stands up -->
+  <div class="screen" id="waiting-screen">
+    <div class="waiting-inner">
+      <p class="eyebrow">Time to stand up!</p>
+      <h1>Your reward is waiting&nbsp;🎁</h1>
+      <p class="subtitle">Stay on this tab for 30 seconds to claim it.</p>
+
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 120 120" width="160" height="160">
+          <circle class="ring-bg" cx="60" cy="60" r="52" />
+          <circle class="ring-fg" id="countdown-circle" cx="60" cy="60" r="52"
+            stroke-dasharray="327" stroke-dashoffset="0"
+            transform="rotate(-90 60 60)" />
+        </svg>
+        <span class="countdown-number" id="countdown-number">30</span>
+      </div>
+
+      <p class="hint">Stretch, shake it out, look out a window 👀</p>
+    </div>
+  </div>
+
+  <!-- Phase 2: reward reveal after countdown -->
+  <div class="screen hidden" id="reveal-screen">
+    <div class="card-scene">
+      <div class="card" id="reward-card">
+
+        <div class="card-face card-front">
+          <span class="gift-icon">🎁</span>
+        </div>
+
+        <div class="card-face card-back">
+          <span class="reward-type" id="reward-type">ANIMAL</span>
+          <div class="reward-emoji" id="reward-emoji">🦐</div>
+          <h2 class="reward-headline" id="reward-headline">Loading…</h2>
+          <p class="reward-content" id="reward-content"></p>
+          <div class="action-row">
+            <button class="btn btn-secondary" id="share-btn">Share this fact</button>
+            <button class="btn btn-primary" id="back-btn">Back to work →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="reward.js"></script>
+</body>
+</html>

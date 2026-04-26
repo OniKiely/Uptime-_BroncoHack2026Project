@@ -1,0 +1,204 @@
+/* popup.css */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #1D9E75;
+  --green-light: #e8f7f2;
+  --green-mid: #b2dfd1;
+  --text: #1a1a2e;
+  --muted: #6b7280;
+  --white: #ffffff;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--white);
+  width: 300px;
+  color: var(--text);
+}
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1rem 0.6rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.logo-icon { font-size: 1.3rem; transition: transform 0.2s; }
+.logo:active .logo-icon { transform: scale(1.3); }
+
+.logo-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.demo-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: var(--warn);
+  color: white;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.demo-badge.hidden { display: none; }
+
+/* ── Timer section ────────────────────────────────────────────────────────── */
+
+.timer-section {
+  padding: 1.1rem 1rem 0.8rem;
+  text-align: center;
+  background: var(--green-light);
+}
+
+.timer-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--green);
+}
+
+.timer-display {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  margin: 0.15rem 0;
+}
+
+.quip {
+  font-size: 0.8rem;
+  color: var(--muted);
+  min-height: 1.2em;
+  line-height: 1.4;
+  padding: 0 0.5rem;
+}
+
+/* ── Progress bar ─────────────────────────────────────────────────────────── */
+
+.progress-section {
+  padding: 0.8rem 1rem;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.progress-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; }
+.progress-eta   { font-weight: 500; }
+
+.progress-track {
+  height: 6px;
+  background: #f0f0f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 999px;
+  transition: width 1s linear, background 0.5s;
+}
+
+/* Turn orange when close to break time */
+.progress-fill.warn { background: var(--warn); }
+
+/* ── Stats ────────────────────────────────────────────────────────────────── */
+
+.stats-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #e5e7eb;
+}
+
+/* ── Streak ───────────────────────────────────────────────────────────────── */
+
+.streak-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: #fdfaf3;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* ── Action buttons ───────────────────────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+}
+
+.btn {
+  flex: 1;
+  padding: 0.55rem 0.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn:hover  { opacity: 0.85; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary   { background: var(--green); color: white; }
+.btn-secondary { background: var(--green-light); color: var(--green); }
