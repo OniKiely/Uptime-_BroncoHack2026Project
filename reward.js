@@ -42,6 +42,14 @@ function startCountdown(rewardPromise) {
       rewardData = await rewardPromise;
       revealReward(rewardData);
     }
+
+        // check to see if user swaps tabs
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        clearInterval(tickInterval);
+      }
+    });
+
   }, 1000);
 }
 
