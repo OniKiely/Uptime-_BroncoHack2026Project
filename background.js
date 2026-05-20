@@ -22,6 +22,8 @@ async function getState() {
     lastMidnightReset: new Date().toDateString(),
     demoMode: false,
     timeByCategory: {},
+    lastTickTime: Date.now(),
+    lastStreakDate: null,
   };
   const stored = await chrome.storage.local.get(null);
   return { ...defaults, ...stored };
@@ -51,6 +53,8 @@ chrome.runtime.onInstalled.addListener(async () => {
     demoMode: false,
     snoozeUsed: false,
     timeByCategory: {},
+    lastTickTime: Date.now(),
+    lastStreakDate: null,
   });
   scheduleBreakAlarm();
   scheduleMidnightReset();
@@ -60,6 +64,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 chrome.runtime.onStartup.addListener(async () => {
   const state = await getState();
   await checkMidnightReset(state);
+  // Chrome was fully closed — sitting clock must restart from now, not from last session
+  await setState({ sessionStart: Date.now(), lastTickTime: Date.now() });
   scheduleBreakAlarm();
   scheduleTickAlarm();
   await updateBadge();
@@ -147,6 +153,18 @@ async function handleBreakAlarm(forced = false) {
 // Add 1 minute to today's tally for the current site category
 async function trackCategoryTime() {
   const state = await getState();
+  const now = Date.now();
+
+  // If the last tick was >90s ago the system was likely sleeping — reset the session clock
+  // so sleep time is never counted as sitting time
+  const lastTick = state.lastTickTime || state.sessionStart;
+  if (now - lastTick > 90 * 1000) {
+    await setState({ sessionStart: now, lastTickTime: now });
+    return;
+  }
+
+  await setState({ lastTickTime: now });
+
   if (!state.siteCategory) return;
   const timeByCategory = state.timeByCategory || {};
   timeByCategory[state.siteCategory] = (timeByCategory[state.siteCategory] || 0) + 1;
@@ -259,24 +277,50 @@ async function handleMessage(message) {
   }
 }
 
+// ── Streak health quips ───────────────────────────────────────────────────────
+
+const STREAK_QUIPS = [
+  'Your spine just filed a formal thank-you note.',
+  'Your lumbar discs are doing a happy dance.',
+  'Your future chiropractor just lost a client.',
+  'Your posture called — it said it\'s proud of you.',
+  'Your hip flexors are officially less betrayed.',
+  'Your glutes have re-entered the chat.',
+  'Your cardiovascular system is slow-clapping.',
+  'Your vertebrae are relieved. They were starting to feel forgotten.',
+  'Your sitting self and standing self are finally at peace.',
+  'Your skeleton sent a postcard. It says "thank you".',
+  'Your back just aged backwards by a year.',
+  'Your blood pressure is smiling.',
+];
+
 // ── Break completion ──────────────────────────────────────────────────────────
 
 async function onBreakCompleted() {
   const state = await getState();
   const newBreakCount = (state.breakCount || 0) + 1;
 
-  // Update streak: did the user break yesterday? today already?
+  // Streak earns on the 3rd break of the day — matches the popup copy
   let newStreak = state.streak || 0;
-  if (state.lastBreakTime) {
-    const lastDate = new Date(state.lastBreakTime).toDateString();
+  let newLastStreakDate = state.lastStreakDate;
+
+  if (newBreakCount === 3) {
+    const today     = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
-    if (lastDate === yesterday && newBreakCount === 1) {
-      newStreak += 1; // new day, continuing streak
-    } else if (lastDate !== new Date().toDateString() && lastDate !== yesterday) {
-      newStreak = 1; // streak broken — reset
+    const lastStreakDay = state.lastStreakDate
+      ? new Date(state.lastStreakDate).toDateString()
+      : null;
+
+    if (!lastStreakDay) {
+      newStreak = 1;          // very first qualifying day ever
+    } else if (lastStreakDay === yesterday) {
+      newStreak += 1;         // continuing streak from yesterday
+    } else if (lastStreakDay !== today) {
+      newStreak = 1;          // missed at least one day — start over
     }
-  } else {
-    newStreak = 1; // very first break ever
+    // lastStreakDay === today means already earned today (edge case), no change
+
+    newLastStreakDate = Date.now();
   }
 
   await setState({
@@ -284,10 +328,23 @@ async function onBreakCompleted() {
     lastBreakTime: Date.now(),
     sessionStart: Date.now(), // reset sitting clock after break
     streak: newStreak,
+    lastStreakDate: newLastStreakDate,
     snoozeUsed: false,        // fresh snooze available next session
     breakInProgress: false,
     rewardTabId: null,
   });
+
+  // Celebrate earning a streak day (3rd break)
+  if (newBreakCount === 3) {
+    const quip = STREAK_QUIPS[Math.floor(Math.random() * STREAK_QUIPS.length)];
+    await chrome.notifications.create('streak-earned', {
+      type: 'basic',
+      iconUrl: 'icons/icon48.png',
+      title: `🔥 ${newStreak}-day streak earned!`,
+      message: quip,
+      priority: 2,
+    });
+  }
 
   scheduleBreakAlarm();
   await updateBadge();
@@ -345,14 +402,22 @@ async function updateBadge() {
 // ── Midnight daily reset ──────────────────────────────────────────────────────
 
 async function checkMidnightReset(state) {
-  const today = new Date().toDateString();
+  const today     = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
   if (state.lastMidnightReset !== today) {
+    // If the user never qualified yesterday (lastStreakDate not from yesterday), streak breaks
+    const lastStreakDay = state.lastStreakDate
+      ? new Date(state.lastStreakDate).toDateString()
+      : null;
+    const streakBroken = lastStreakDay !== null && lastStreakDay !== yesterday;
+
     await setState({
       totalSittingToday: 0,
       breakCount: 0,
       sessionStart: Date.now(),
       lastMidnightReset: today,
       timeByCategory: {},
+      streak: streakBroken ? 0 : state.streak,
     });
   }
 }

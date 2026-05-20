@@ -80,11 +80,25 @@ function updateStats(state) {
 // ── Streak ────────────────────────────────────────────────────────────────────
 
 function updateStreak(state) {
-  const s = state.streak || 0;
-  const text = s >= 1
-    ? `${s}-day streak! Your future self is grateful.`
-    : 'Complete 3 breaks today to start a streak!';
+  const streak = state.streak || 0;
+  const breaks = state.breakCount || 0;
+  const streakDone = streak >= 1 && breaks >= 3;
+  let text;
+
+  if (streakDone) {
+    text = `${streak}-day streak! Your future self is grateful.`;
+  } else if (streak >= 1) {
+    text = `${streak}-day streak — ${breaks}/3 breaks today to keep it.`;
+  } else if (breaks === 2) {
+    text = '2/3 breaks done — one more to start a streak!';
+  } else if (breaks === 1) {
+    text = '1/3 breaks done — keep going!';
+  } else {
+    text = 'Complete 3 breaks today to start a streak!';
+  }
+
   document.getElementById('streak-text').textContent = text;
+  document.getElementById('streak-row').classList.toggle('streak-done', streakDone);
 }
 
 // ── Demo mode badge ───────────────────────────────────────────────────────────

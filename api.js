@@ -53,13 +53,17 @@ const REWARD_INSTRUCTIONS = {
   FAKE_STUDY: 'A made-up but completely plausible-sounding scientific study with an absurd finding. Label it clearly as "fictional" in the content.',
 };
 
-function buildPrompt(siteCategory, breakCount) {
+function buildPrompt(siteCategory, breakCount, recentHeadlines = []) {
   // Pick the type here in JS so the model can't default to ANIMAL every time
   const type = REWARD_TYPES[Math.floor(Math.random() * REWARD_TYPES.length)];
 
+  const avoidClause = recentHeadlines.length > 0
+    ? `\n\nThe user has already seen these facts — do NOT repeat or closely paraphrase any of them: ${recentHeadlines.join(' | ')}. Pick a completely different subject.`
+    : '';
+
   return `The user just completed break #${breakCount} today. They were working on: ${siteCategory}.
 
-Generate a "${type}" reward: ${REWARD_INSTRUCTIONS[type]}
+Generate a "${type}" reward: ${REWARD_INSTRUCTIONS[type]}${avoidClause}
 
 Respond ONLY with valid JSON, no markdown, no preamble:
 {
@@ -74,6 +78,10 @@ Respond ONLY with valid JSON, no markdown, no preamble:
 
 // Call after the user completes their break timer
 export async function generateReward(siteCategory = 'other', breakCount = 1) {
+  // Read recent headlines so Gemini knows what to avoid
+  const { savedRewards = [] } = await chrome.storage.local.get('savedRewards');
+  const recentHeadlines = savedRewards.slice(0, 15).map(r => r.headline);
+
   try {
     const response = await fetch(GEMINI_URL, {
       method: 'POST',
@@ -85,7 +93,7 @@ export async function generateReward(siteCategory = 'other', breakCount = 1) {
           }],
         },
         contents: [{
-          parts: [{ text: buildPrompt(siteCategory, breakCount) }],
+          parts: [{ text: buildPrompt(siteCategory, breakCount, recentHeadlines) }],
         }],
         generationConfig: {
           temperature: 1.2,
