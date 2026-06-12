@@ -1,0 +1,9 @@
+name = "uptime-gemini-proxy"
+main = "index.js"
+compatibility_date = "2025-01-01"
+
+# KV namespace for rate limiting.
+# After creating the KV namespace in the dashboard, paste its ID below.
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "PASTE_YOUR_KV_NAMESPACE_ID_HERE"

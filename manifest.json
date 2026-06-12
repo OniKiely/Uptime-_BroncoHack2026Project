@@ -40,6 +40,6 @@
   ],
 
   "host_permissions": [
-    "https://generativelanguage.googleapis.com/*"
+    "https://uptime-gemini-proxy.wangruiyang1210.workers.dev/*"
   ]
 }

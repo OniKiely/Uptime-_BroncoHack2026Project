@@ -1,9 +1,6 @@
 // api.js — Gemini API helper: topic-pool queue generation + fallbacks
 
-import { GEMINI_API_KEY } from './config.js';
-
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+const WORKER_URL = 'https://uptime-gemini-proxy.wangruiyang1210.workers.dev';
 
 const QUEUE_TARGET    = 10; // facts generated per batch call
 const QUEUE_REFILL_AT = 3;  // start refilling when fewer than this remain
@@ -196,7 +193,7 @@ async function generateBatch() {
     `Write ${QUEUE_TARGET} fun facts — one per subject, no substitutions:\n${itemList}\n\n` +
     `JSON array only:\n[{"type":"...","headline":"title","content":"2 sentences","emoji":"emoji"},...]`;
 
-  const response = await fetch(GEMINI_URL, {
+  const response = await fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -250,7 +247,7 @@ async function generateSingle(savedRewards) {
     `Fact about: ${topic.subject}\n` +
     `JSON only: {"type":"${topic.type}","headline":"title","content":"2 sentences","emoji":"emoji"}`;
 
-  const response = await fetch(GEMINI_URL, {
+  const response = await fetch(WORKER_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

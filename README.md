@@ -115,20 +115,22 @@ uptime-extension/
 ├── manifest.json        Chrome extension manifest (MV3)
 ├── background.js        Service worker: timer, alarms, idle detection, badge
 ├── content.js           Injected script: site category + typing pause detection
-├── api.js               Gemini API helper + 5 hardcoded fallback rewards
-├── config.js            API key — gitignored, not committed
+├── api.js               Reward queue logic — calls the Cloudflare Worker proxy
 ├── popup.html           Extension popup UI
 ├── popup.js             Popup logic: live timer, stats, snooze, demo mode
 ├── popup.css            Popup styles
 ├── reward.html          Break screen: countdown + reward reveal
 ├── reward.js            Reward logic: countdown, flip animation, particles
 ├── reward.css           Reward styles: themes, card flip, particles
-├── collection.html      collection page (Oisin feature)
+├── collection.html      Collection page
 ├── collection.js        Collection page logic
 ├── icons/
 │   ├── icon16.png       Toolbar icon (16×16)
 │   ├── icon48.png       Extensions page icon (48×48)
 │   └── icon128.png      Install screen icon (128×128)
+├── worker/
+│   ├── index.js         Cloudflare Worker — Gemini API proxy with rate limiting
+│   └── wrangler.toml    Cloudflare deployment config
 └── screenshots/
     ├── demo1.png
     ├── demo2.png
@@ -142,7 +144,6 @@ uptime-extension/
 
 ### Prerequisites
 - Google Chrome (version 88 or later)
-- A free [Google Gemini API key](https://aistudio.google.com/app/apikey)
 
 ### Setup
 
@@ -152,21 +153,15 @@ git clone https://github.com/OniKiely/Uptime-_BroncoHack2026Project.git
 cd Uptime-_BroncoHack2026Project
 ```
 
-**2. Add your Gemini API key**
-
-Create (or edit) `config.js` in the root folder:
-```js
-export const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
-```
-> `config.js` is gitignored and will never be committed.
-
-**3. Load the extension in Chrome**
+**2. Load the extension in Chrome**
 
 1. Open Chrome and navigate to `chrome://extensions`
 2. Toggle **Developer mode** ON (top-right corner)
 3. Click **Load unpacked**
 4. Select the project folder (`Uptime-_BroncoHack2026Project/`)
 5. The Uptime! otter icon will appear in your Chrome toolbar
+
+> No API key setup required. AI rewards are fetched through a serverless proxy — the key is stored securely on the server side.
 
 ### Testing the Full Flow
 
@@ -193,6 +188,7 @@ export const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 | Extension | Chrome Manifest V3 |
 | Language | Vanilla JavaScript (no frameworks) |
 | AI | Google Gemini 2.5 Flash (`gemini-2.5-flash`) |
+| API proxy | Cloudflare Workers (serverless, free tier) |
 | Storage | `chrome.storage.local` |
 | Scheduling | `chrome.alarms` |
 | Idle detection | `chrome.idle` |
@@ -211,6 +207,6 @@ export const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE";
 
 ## Known Limitations
 
-- The Gemini API key must be added manually to `config.js` — it is not bundled
 - The extension icon badge requires Chrome 88+ (`chrome.action` API)
 - Idle detection threshold is 5 minutes — shorter periods of inactivity still count as sitting time
+- AI rewards require an internet connection; 5 offline fallback facts are shown if the proxy is unreachable
