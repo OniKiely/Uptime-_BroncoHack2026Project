@@ -1,5 +1,7 @@
 // background.js — service worker: manages sitting timer, alarms, idle detection
 
+import { prefillQueue } from './api.js';
+
 const DEFAULT_THRESHOLD = 45; // minutes before break alert
 const IDLE_THRESHOLD_SECONDS = 300; // 5 min of no input = idle
 
@@ -55,20 +57,26 @@ chrome.runtime.onInstalled.addListener(async () => {
     timeByCategory: {},
     lastTickTime: Date.now(),
     lastStreakDate: null,
+    queueFilling: false,
+    rewardQueue: [],
+    usedTopicIndices: [],
   });
   scheduleBreakAlarm();
   scheduleMidnightReset();
   scheduleTickAlarm();
+  prefillQueue().catch(() => {});
 });
 
 chrome.runtime.onStartup.addListener(async () => {
   const state = await getState();
   await checkMidnightReset(state);
   // Chrome was fully closed — sitting clock must restart from now, not from last session
-  await setState({ sessionStart: Date.now(), lastTickTime: Date.now() });
+  // Also clear any stale queueFilling lock left over from a closed reward tab
+  await setState({ sessionStart: Date.now(), lastTickTime: Date.now(), queueFilling: false });
   scheduleBreakAlarm();
   scheduleTickAlarm();
   await updateBadge();
+  prefillQueue().catch(() => {}); // warm up the reward queue in the background
 });
 
 // ── Alarm scheduling ──────────────────────────────────────────────────────────
@@ -136,7 +144,13 @@ async function handleBreakAlarm(forced = false) {
 
   // Don't open a second reward tab if one is already on screen
   const existing = await chrome.tabs.query({ url: chrome.runtime.getURL('reward.html') });
-  if (existing.length > 0) return;
+  if (existing.length > 0) {
+    // The alarm was consumed but the break is still going — reschedule so
+    // we come back after the current tab closes. onBreakCompleted / onRemoved
+    // will overwrite this alarm once the break actually ends.
+    scheduleBreakAlarm();
+    return;
+  }
 
   // Add current session minutes to today's total before opening break screen
   const sessionMinutes = Math.round((Date.now() - state.sessionStart) / 60000);
@@ -148,6 +162,9 @@ async function handleBreakAlarm(forced = false) {
 
   const tab = await chrome.tabs.create({ url: chrome.runtime.getURL('reward.html') });
   await setState({ rewardTabId: tab.id });
+  // Refill the queue in the service worker now so it's ready before the NEXT break.
+  // Running here (not in the reward tab) means it survives if the user closes the tab early.
+  prefillQueue().catch(() => {});
 }
 
 // Add 1 minute to today's tally for the current site category
@@ -348,6 +365,7 @@ async function onBreakCompleted() {
 
   scheduleBreakAlarm();
   await updateBadge();
+  prefillQueue().catch(() => {}); // top up the queue after each break
 }
 
 // ── Badge & notification ──────────────────────────────────────────────────────

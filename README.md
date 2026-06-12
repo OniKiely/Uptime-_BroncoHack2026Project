@@ -3,9 +3,13 @@
 > **Smart sitting reminder that makes taking breaks feel rewarding.**  
 > Built for BroncoHack 2026 — Sport & Fitness / Health & Wellness track.
 
+
+## Landing Page: https://uptime-landing-page-tawny.vercel.app
+
 Instead of annoying popups you dismiss, every completed break unlocks a surprise **AI-generated reward** — fun animal facts, space trivia, weird history, counterintuitive science, or a completely fictional study. The catch: you don't see the reward until *after* you stand up and wait 30 seconds.
 
 Demo Video: https://www.youtube.com/watch?v=PwIlvkM06zw
+
 
 ---
 
