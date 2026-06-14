@@ -1,14 +1,16 @@
 # Uptime! 🦦
 
-> **Smart sitting reminder that makes taking breaks feel rewarding.**  
-> Built for BroncoHack 2026 — Sport & Fitness / Health & Wellness track.
+> **Smart sitting reminder that makes taking breaks feel rewarding.**
 
+[![Available in the Chrome Web Store](https://img.shields.io/badge/Chrome%20Web%20Store-Install-4285F4?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/njcmdjognknhffkhbfcpcdbedofomhkf)
 
-## Landing Page: https://uptime-landing-page-tawny.vercel.app
+**[➜ Install from the Chrome Web Store](https://chromewebstore.google.com/detail/njcmdjognknhffkhbfcpcdbedofomhkf)**
 
 Instead of annoying popups you dismiss, every completed break unlocks a surprise **AI-generated reward** — fun animal facts, space trivia, weird history, counterintuitive science, or a completely fictional study. The catch: you don't see the reward until *after* you stand up and wait 30 seconds.
 
-Demo Video: https://www.youtube.com/watch?v=PwIlvkM06zw
+- 🌐 **Landing page:** https://uptime-landing-page-tawny.vercel.app
+- 🎬 **Demo video:** https://www.youtube.com/watch?v=PwIlvkM06zw
+- 🏆 **Originally built for BroncoHack 2026** — Sport & Fitness / Health & Wellness track
 
 
 ---
