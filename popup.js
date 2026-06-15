@@ -73,8 +73,9 @@ function updateProgress(state) {
 
 function updateStats(state) {
   document.getElementById('break-count').textContent = state.breakCount || 0;
+  // `totalSittingToday` is persisted by the background tick; show it alone
   document.getElementById('total-sitting').textContent =
-    formatMins((state.totalSittingToday || 0) + (state.currentSessionMinutes || 0));
+    formatMins(state.totalSittingToday || 0);
 }
 
 // ── Streak ────────────────────────────────────────────────────────────────────

@@ -152,10 +152,8 @@ async function handleBreakAlarm(forced = false) {
     return;
   }
 
-  // Add current session minutes to today's total before opening break screen
-  const sessionMinutes = Math.round((Date.now() - state.sessionStart) / 60000);
+  // totalSittingToday is already incremented every minute by trackCategoryTime()
   await setState({
-    totalSittingToday: (state.totalSittingToday || 0) + sessionMinutes,
     recentTabSwitches: 0,
     breakInProgress: true,
   });
@@ -182,10 +180,18 @@ async function trackCategoryTime() {
 
   await setState({ lastTickTime: now });
 
-  if (!state.siteCategory) return;
+  // Increment totalSittingToday by 1 minute every tick (persists to storage)
+  const updatedTotal = (state.totalSittingToday || 0) + 1;
+  const stateUpdate = { totalSittingToday: updatedTotal };
+  
+  if (!state.siteCategory) {
+    await setState(stateUpdate);
+    return;
+  }
   const timeByCategory = state.timeByCategory || {};
   timeByCategory[state.siteCategory] = (timeByCategory[state.siteCategory] || 0) + 1;
-  await setState({ timeByCategory });
+  stateUpdate.timeByCategory = timeByCategory;
+  await setState(stateUpdate);
 }
 
 // ── Idle detection ────────────────────────────────────────────────────────────
