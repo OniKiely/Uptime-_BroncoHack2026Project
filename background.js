@@ -68,15 +68,18 @@ chrome.runtime.onInstalled.addListener(async () => {
 });
 
 chrome.runtime.onStartup.addListener(async () => {
+  // Clear ALL alarms first — a stale break alarm from the previous session could be
+  // overdue and would fire immediately if not wiped before the event loop continues.
+  await chrome.alarms.clearAll();
+
   const state = await getState();
   await checkMidnightReset(state);
-  // Chrome was fully closed — sitting clock must restart from now, not from last session
-  // Also clear any stale queueFilling lock left over from a closed reward tab
   await setState({ sessionStart: Date.now(), lastTickTime: Date.now(), queueFilling: false });
   scheduleBreakAlarm();
+  scheduleMidnightReset();
   scheduleTickAlarm();
   await updateBadge();
-  prefillQueue().catch(() => {}); // warm up the reward queue in the background
+  prefillQueue().catch(() => {});
 });
 
 // ── Alarm scheduling ──────────────────────────────────────────────────────────
@@ -104,6 +107,12 @@ function scheduleMidnightReset() {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'break') {
+    // If the alarm is >60s overdue, Chrome was closed or the system was sleeping —
+    // firing a break immediately would be jarring. Reschedule fresh from now.
+    if (Date.now() - alarm.scheduledTime > 60 * 1000) {
+      scheduleBreakAlarm();
+      return;
+    }
     await handleBreakAlarm();
   } else if (alarm.name === 'tick') {
     await updateBadge();
