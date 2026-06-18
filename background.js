@@ -38,7 +38,15 @@ async function setState(updates) {
 
 // ── Initialization ────────────────────────────────────────────────────────────
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
+  if (details.reason !== 'install') {
+    // Extension or Chrome updated — re-schedule alarms but never wipe user data
+    scheduleBreakAlarm();
+    scheduleMidnightReset();
+    scheduleTickAlarm();
+    return;
+  }
+  // First install only — set up a clean slate
   await setState({
     sessionStart: Date.now(),
     totalSittingToday: 0,
@@ -192,13 +200,10 @@ async function trackCategoryTime() {
   // Increment totalSittingToday by 1 minute every tick (persists to storage)
   const updatedTotal = (state.totalSittingToday || 0) + 1;
   const stateUpdate = { totalSittingToday: updatedTotal };
-  
-  if (!state.siteCategory) {
-    await setState(stateUpdate);
-    return;
-  }
+
   const timeByCategory = state.timeByCategory || {};
-  timeByCategory[state.siteCategory] = (timeByCategory[state.siteCategory] || 0) + 1;
+  const cat = state.siteCategory || 'other';
+  timeByCategory[cat] = (timeByCategory[cat] || 0) + 1;
   stateUpdate.timeByCategory = timeByCategory;
   await setState(stateUpdate);
 }
@@ -212,11 +217,11 @@ chrome.idle.onStateChanged.addListener(async (newState) => {
   await setState({ isIdle });
 
   if (!isIdle) {
-    // User is back — restart session clock
+    // User is back — restart session clock AND the break alarm so idle time
+    // never counts toward the sitting threshold. scheduleBreakAlarm() clears
+    // the old alarm before creating a new one, so no stacking risk.
     await setState({ sessionStart: Date.now() });
-    // Only reschedule if the alarm was cleared while idle (don't stack alarms)
-    const existing = await chrome.alarms.get('break');
-    if (!existing) scheduleBreakAlarm();
+    scheduleBreakAlarm();
   }
 });
 
