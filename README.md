@@ -25,6 +25,10 @@ Instead of annoying popups you dismiss, every completed break unlocks a surprise
 |---|---|
 | ![Reward](screenshots/demo3.png) | ![Theme](screenshots/demo4.png) |
 
+| Streak Reward — Daily Unlockable |
+|---|
+| *(screenshot coming soon)* |
+
 ---
 
 ## Features
@@ -63,6 +67,14 @@ Each completed break reveals one of five reward types, picked randomly so you ne
 - **Floating emoji particles** matching the reward drift upward like themed confetti
 - **"Learn more"** button opens a Google search for the fact (hidden for fictional studies)
 - **"Share this fact"** copies the reward text to clipboard
+
+### Streak Reward — Daily Unlockable Art
+After completing **3 breaks in a day**, a special reward unlocks:
+- A randomly selected piece of **original mascot artwork** by human artist [**@Osprey.Mobius**](https://www.instagram.com/osprey.mobius/) — 15 unique illustrations, each seen before any repeats
+- An **AI-generated meme caption** (via Gemini) personalised with your day's stats: streak day, sitting time, and breaks completed — one sentence, under 15 words
+- **Download** the artwork to keep or share
+- **Copy the caption** to pair with the image as a shareable card
+- Missed the button on the reward screen? The **Collection page** shows a claim banner all day until midnight
 
 ### Popup — Live Dashboard
 - **Live session timer** updates every second — shows `23m` or `1h 8m` format
@@ -126,6 +138,12 @@ uptime-extension/
 ├── reward.css           Reward styles: themes, card flip, particles
 ├── collection.html      Collection page
 ├── collection.js        Collection page logic
+├── collection.css       Collection styles
+├── streak_reward.html   Daily streak reward page
+├── streak_reward.js     Streak reward logic: image pool, caption, download
+├── streak_reward.css    Streak reward styles
+├── streak_reward/
+│   ├── 1.PNG … 15.PNG   Original mascot artwork by @Osprey.Mobius
 ├── icons/
 │   ├── icon16.png       Toolbar icon (16×16)
 │   ├── icon48.png       Extensions page icon (48×48)

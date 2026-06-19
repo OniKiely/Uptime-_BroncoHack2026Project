@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] — 2026-06-19
+
+### Added
+
+- **Streak reward — daily unlockable artwork** — Completing 3 breaks in a day unlocks a special full-page reward screen. A randomly selected piece of original mascot artwork (15 illustrations by human artist @Osprey.Mobius) is shown, cycling through the full set before any image repeats. An AI-generated meme caption personalised with the day's stats (streak day, sitting time, breaks) is fetched from Gemini and displayed alongside the artwork.
+
+- **Artwork download** — Users can download the day's streak illustration directly from the reward page.
+
+- **Caption copy / share card** — The AI caption can be copied to clipboard to pair with the downloaded image as a shareable card.
+
+- **Same-day image consistency** — Opening the streak reward page multiple times in one day (e.g. from the collection page) reuses the same artwork instead of burning through the pool. `currentStreakImage` and `lastStreakRewardDate` are stored to enforce this.
+
+- **Collection page claim banner** — If the user misses the streak reward button on the reward screen, a persistent "Claim Your Streak Reward" banner appears at the top of the Collection page for the rest of the day (visible whenever `breakCount >= 3`). Disappears automatically at midnight when daily stats reset.
+
+---
+
 ## [1.1.0] — 2026-06-18
 
 ### Fixed
