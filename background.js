@@ -68,6 +68,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     queueFilling: false,
     rewardQueue: [],
     usedTopicIndices: [],
+    usedStreakImages: [],
   });
   scheduleBreakAlarm();
   scheduleMidnightReset();

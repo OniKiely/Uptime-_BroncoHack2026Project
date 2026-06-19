@@ -21,12 +21,15 @@ async function init() {
     (state.breakCount || 0) + 1
   );
 
-  startCountdown(rewardPromise);
+  // 3rd break of the day earns the special streak artwork reward
+  const isStreakBreak = (state.breakCount || 0) + 1 === 3;
+
+  startCountdown(rewardPromise, isStreakBreak);
 }
 
 // ── Countdown ─────────────────────────────────────────────────────────────────
 
-function startCountdown(rewardPromise) {
+function startCountdown(rewardPromise, isStreakBreak) {
   let secondsLeft = COUNTDOWN_SECONDS;
   const numberEl = document.getElementById('countdown-number');
   const circleEl = document.getElementById('countdown-circle');
@@ -41,7 +44,7 @@ function startCountdown(rewardPromise) {
     if (secondsLeft <= 0) {
       clearInterval(tickInterval);
       rewardData = await rewardPromise;
-      revealReward(rewardData);
+      revealReward(rewardData, isStreakBreak);
     }
   }, 1000);
 
@@ -66,7 +69,7 @@ function startCountdown(rewardPromise) {
           if (secondsLeft <= 0) {
             clearInterval(tickInterval);
             rewardData = await rewardPromise;
-            revealReward(rewardData);
+            revealReward(rewardData, isStreakBreak);
           }
         }, 1000);
       }
@@ -83,7 +86,7 @@ function updateRing(circleEl, numberEl, secondsLeft) {
 
 // ── Reveal ────────────────────────────────────────────────────────────────────
 
-function revealReward(reward) {
+function revealReward(reward, isStreakBreak = false) {
   breakCompleted = true;
 
   // Tell background.js the break is done (updates streak, breakCount, session)
@@ -120,9 +123,24 @@ function revealReward(reward) {
   // Small delay so the card is in the DOM before we trigger the flip
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      document.getElementById('reward-card').classList.add('flipped');
+      const card = document.getElementById('reward-card');
+      card.classList.add('flipped');
+      // After the flip animation finishes, surface the streak reward button
+      if (isStreakBreak) {
+        card.addEventListener('transitionend', showStreakButton, { once: true });
+      }
     });
   });
+}
+
+function showStreakButton() {
+  const btn = document.createElement('button');
+  btn.id = 'streak-claim-btn';
+  btn.textContent = '🔥 Claim Your Streak Reward';
+  btn.addEventListener('click', () => {
+    window.location.assign(chrome.runtime.getURL('streak_reward.html'));
+  });
+  document.getElementById('reveal-screen').appendChild(btn);
 }
 
 // ── Particles ─────────────────────────────────────────────────────────────────

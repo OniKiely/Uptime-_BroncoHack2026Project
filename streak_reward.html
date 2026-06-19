@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uptime! — Streak Reward</title>
+  <link rel="stylesheet" href="streak_reward.css">
+</head>
+<body>
+  <div class="page">
+
+    <header class="header">
+      <div class="flame-row">🔥🔥🔥</div>
+      <h1 class="title">Daily Streak Unlocked!</h1>
+      <p class="subtitle" id="streak-label">Day — streak</p>
+    </header>
+
+    <!-- Mascot artwork -->
+    <div class="art-frame">
+      <img id="mascot-img" src="" alt="Uptime! streak mascot" class="mascot-img" />
+      <p class="artist-credit">Artwork by <strong>@Osprey.Mobius</strong></p>
+    </div>
+
+    <!-- Today's stats -->
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-value" id="stat-sat">—</span>
+        <span class="stat-label">sat today</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value" id="stat-breaks">—</span>
+        <span class="stat-label">breaks done</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-value" id="stat-streak">—</span>
+        <span class="stat-label">day streak</span>
+      </div>
+    </div>
+
+    <!-- AI caption -->
+    <div class="caption-card">
+      <p class="caption-text" id="caption-text">Generating your caption…</p>
+      <button class="btn btn-ghost" id="copy-btn" disabled>Copy caption</button>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-primary" id="download-btn">⬇ Download artwork</button>
+      <button class="btn btn-secondary" id="close-btn">Done</button>
+    </div>
+
+  </div>
+  <script src="streak_reward.js" type="module"></script>
+</body>
+</html>

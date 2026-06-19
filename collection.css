@@ -41,6 +41,21 @@ body {
   color: var(--green);
 }
 
+/* ── Streak reward banner ─────────────────────────────────────────────────── */
+
+.streak-banner {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.streak-banner.hidden { display: none; }
+
+.streak-banner .btn {
+  width: 100%;
+  background: linear-gradient(135deg, #ff6b35, #f59e0b);
+  color: white;
+}
+
 /* ── Today's sessions stats ───────────────────────────────────────────────── */
 
 .stats-section {

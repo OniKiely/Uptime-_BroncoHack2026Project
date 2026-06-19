@@ -277,6 +277,46 @@ export async function prefillQueue() {
   await fillQueue(savedRewards, rewardQueue);
 }
 
+// ── Streak caption generation ─────────────────────────────────────────────────
+
+const CAPTION_FALLBACKS = [
+  "Standing up daily: the one healthy habit my doctor actually believes.",
+  "Broke 3 times today, fixed my back once. Net positive.",
+  "My spine filed a formal thank-you note and I framed it.",
+  "Three breaks taken. Zero excuses left. Posture: temporarily redeemed.",
+  "Sat like a champion, stood like a legend. Repeat tomorrow.",
+];
+
+export async function generateStreakCaption({ streak, totalSittingToday, breakCount }) {
+  const prompt =
+    `Day ${streak} streak. ${totalSittingToday} minutes sat today. ${breakCount} breaks done. ` +
+    `Write a short, funny, slightly self-aware meme caption for this sitting break achievement. ` +
+    `1 sentence, under 15 words. Return ONLY the caption text.`;
+
+  try {
+    const response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 1.3, maxOutputTokens: 50, thinkingConfig: { thinkingBudget: 0 } },
+      }),
+    });
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const caption = parts.map(p => p.text ?? '').join('').trim()
+      .replace(/^["']|["']$/g, ''); // strip any surrounding quotes Gemini sneaks in
+
+    if (!caption) throw new Error('empty response');
+    return caption;
+  } catch {
+    return CAPTION_FALLBACKS[Math.floor(Math.random() * CAPTION_FALLBACKS.length)];
+  }
+}
+
 // ── Fallback ──────────────────────────────────────────────────────────────────
 
 export async function getOfflineReward() {

@@ -19,8 +19,17 @@ const CATEGORY_META = {
 };
 
 async function init() {
-  const { savedRewards = [], timeByCategory = {} } =
-    await chrome.storage.local.get(['savedRewards', 'timeByCategory']);
+  const { savedRewards = [], timeByCategory = {}, breakCount = 0 } =
+    await chrome.storage.local.get(['savedRewards', 'timeByCategory', 'breakCount']);
+
+  // ── Streak reward banner ───────────────────────────────────────────────────
+  if (breakCount >= 3) {
+    document.getElementById('streak-banner').classList.remove('hidden');
+    document.getElementById('streak-banner-btn').addEventListener('click', () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('streak_reward.html') });
+      window.close();
+    });
+  }
 
   // ── Stats ──────────────────────────────────────────────────────────────────
   const entries = Object.entries(timeByCategory).filter(([, mins]) => mins > 0);

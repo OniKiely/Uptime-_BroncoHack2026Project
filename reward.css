@@ -243,3 +243,32 @@ body[class*="theme-"] .card-face {
 
 .btn-primary  { background: var(--green); color: var(--white); }
 .btn-secondary { background: var(--green-light); color: var(--green); }
+
+/* ── Streak reward claim button (injected on 3rd break) ───────────────────── */
+
+#streak-claim-btn {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.8rem 2rem;
+  background: linear-gradient(135deg, #ff6b35, #f59e0b);
+  color: var(--white);
+  border: none;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 24px rgba(255, 107, 53, 0.45);
+  animation: streak-btn-rise 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  z-index: 10;
+}
+
+#streak-claim-btn:hover  { opacity: 0.9; transform: translateX(-50%) translateY(-2px); }
+#streak-claim-btn:active { transform: translateX(-50%) translateY(0); }
+
+@keyframes streak-btn-rise {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
