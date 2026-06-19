@@ -27,7 +27,7 @@ Instead of annoying popups you dismiss, every completed break unlocks a surprise
 
 | Streak Reward — Daily Unlockable |
 |---|
-| *(screenshot coming soon)* |
+| <img width="1151" height="728" alt="UptimeNew" src="https://github.com/user-attachments/assets/407bd4d7-6d60-4004-bfd3-8a79c232529e" /> |
 
 ---
 
