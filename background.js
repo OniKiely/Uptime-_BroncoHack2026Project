@@ -116,14 +116,14 @@ function scheduleMidnightReset() {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'break') {
-    // If the alarm is >60s overdue, Chrome was closed or the system was sleeping —
-    // firing a break immediately would be jarring. Reschedule fresh from now.
     if (Date.now() - alarm.scheduledTime > 60 * 1000) {
       scheduleBreakAlarm();
       return;
     }
     await handleBreakAlarm();
   } else if (alarm.name === 'tick') {
+    const state = await getState();
+    await checkMidnightReset(state);
     await updateBadge();
     await trackCategoryTime();
   } else if (alarm.name === 'midnight') {
@@ -441,22 +441,23 @@ async function updateBadge() {
 // ── Midnight daily reset ──────────────────────────────────────────────────────
 
 async function checkMidnightReset(state) {
-  const today     = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
-  if (state.lastMidnightReset !== today) {
-    // If the user never qualified yesterday (lastStreakDate not from yesterday), streak breaks
-    const lastStreakDay = state.lastStreakDate
-      ? new Date(state.lastStreakDate).toDateString()
-      : null;
-    const streakBroken = lastStreakDay !== null && lastStreakDay !== yesterday;
+  const today = new Date().toDateString();
+  if (state.lastMidnightReset === today) return;
 
-    await setState({
-      totalSittingToday: 0,
-      breakCount: 0,
-      sessionStart: Date.now(),
-      lastMidnightReset: today,
-      timeByCategory: {},
-      streak: streakBroken ? 0 : state.streak,
-    });
-  }
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  const lastStreakDay = state.lastStreakDate
+    ? new Date(state.lastStreakDate).toDateString()
+    : null;
+
+  // Streak breaks if they had one but yesterday wasn't their last qualifying day
+  const streakBroken = lastStreakDay !== null && lastStreakDay !== yesterday;
+
+  await setState({
+    totalSittingToday: 0,
+    breakCount: 0,
+    lastMidnightReset: today,
+    timeByCategory: {},
+    snoozeUsed: false,
+    streak: streakBroken ? 0 : state.streak,
+  });
 }
