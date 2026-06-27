@@ -116,6 +116,8 @@ function scheduleMidnightReset() {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'break') {
+    // If the alarm is >60s overdue, Chrome was closed or the system was sleeping —
+    // firing a break immediately would be jarring. Reschedule fresh from now.
     if (Date.now() - alarm.scheduledTime > 60 * 1000) {
       scheduleBreakAlarm();
       return;
