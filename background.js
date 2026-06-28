@@ -176,6 +176,7 @@ async function handleBreakAlarm(forced = false) {
   await setState({
     recentTabSwitches: 0,
     breakInProgress: true,
+    breakWasForced: forced,
   });
 
   const tab = await chrome.tabs.create({ url: chrome.runtime.getURL('reward.html') });
@@ -235,8 +236,17 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
   const state = await getState();
   if (!state.breakInProgress || state.rewardTabId !== tabId) return;
 
-  // Tab was closed early — clear the flag and reschedule a nudge
-  await setState({ breakInProgress: false, rewardTabId: null });
+  // Tab was closed early — clear the flag and reschedule
+  await setState({ breakInProgress: false, rewardTabId: null, breakWasForced: false });
+
+  // Manual break closed early: user just sat down, so give the full threshold from now
+  if (state.breakWasForced) {
+    scheduleBreakAlarm();
+    await updateBadge();
+    return;
+  }
+
+  // Auto break closed early: user still needs to stand up — nudge in 5 min
   chrome.alarms.create('break', { delayInMinutes: 5 });
   await updateBadge();
 

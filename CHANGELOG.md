@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.1] — 2026-06-27
+
+### Fixed
+
+- **Midnight reset missed when Chrome stays open past midnight** — The midnight alarm could be silently skipped if the service worker was inactive at the moment it was scheduled to fire. Fixed by calling `checkMidnightReset()` on every minute tick, so the reset triggers within one minute of the day changing regardless of the alarm's state.
+
+- **Manual break closed early triggered a 5-minute nudge** — Closing the reward tab before completing the countdown always rescheduled a break alarm for 5 minutes later, even when the break was manually triggered from the popup ("Take a break now"). If the user just started sitting and chose to preview the reward tab then close it, the 5-minute follow-up was misleading. Now manual breaks that are closed early restore the full sitting threshold from the current time — the session continues as if nothing happened. Only auto breaks (alarm-triggered) keep the 5-minute nudge.
+
+### Changed
+
+- **Reward topic pool expanded from 60 → 120** — Added 12 new topics per category (Animal, Space, History, Science, Fake Study). At typical usage (5–10 breaks/day) the pool now cycles roughly every 2–4 weeks before any subject repeats.
+
+---
+
 ## [1.2.0] — 2026-06-19
 
 ### Added
