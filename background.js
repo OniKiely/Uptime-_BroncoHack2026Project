@@ -173,14 +173,15 @@ async function handleBreakAlarm(forced = false) {
   }
 
   // totalSittingToday is already incremented every minute by trackCategoryTime()
+  // Write breakInProgress and rewardTabId in one atomic setState so a service-worker
+  // kill between the two writes can't leave rewardTabId stale (which breaks onRemoved).
+  const tab = await chrome.tabs.create({ url: chrome.runtime.getURL('reward.html') });
   await setState({
     recentTabSwitches: 0,
     breakInProgress: true,
     breakWasForced: forced,
+    rewardTabId: tab.id,
   });
-
-  const tab = await chrome.tabs.create({ url: chrome.runtime.getURL('reward.html') });
-  await setState({ rewardTabId: tab.id });
   // Refill the queue in the service worker now so it's ready before the NEXT break.
   // Running here (not in the reward tab) means it survives if the user closes the tab early.
   prefillQueue().catch(() => {});
@@ -314,7 +315,19 @@ async function handleMessage(message) {
         ? Math.max(0, Math.round((alarm.scheduledTime - Date.now()) / 60000))
         : null;
       const currentSessionMinutes = Math.round((Date.now() - state.sessionStart) / 60000);
-      return { ...state, minutesUntilBreak, currentSessionMinutes };
+
+      // Self-heal: if breakInProgress is stuck true but the reward tab no longer exists
+      // (service worker was killed during idle and missed the onRemoved event), clear it.
+      let { breakInProgress } = state;
+      if (breakInProgress) {
+        const rewardTabs = await chrome.tabs.query({ url: chrome.runtime.getURL('reward.html') });
+        if (rewardTabs.length === 0) {
+          breakInProgress = false;
+          await setState({ breakInProgress: false, rewardTabId: null, breakWasForced: false });
+        }
+      }
+
+      return { ...state, breakInProgress, minutesUntilBreak, currentSessionMinutes };
     }
 
     case 'SET_DEMO_MODE':
