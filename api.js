@@ -215,6 +215,13 @@ async function fillQueue(savedRewards, currentQueue) {
   }
 }
 
+// Returns val if it contains at least one real emoji codepoint, otherwise '✨'.
+// Guards against Gemini returning emoji names ("star", "FR") instead of characters.
+function sanitizeEmoji(val) {
+  if (val && /\p{Emoji_Presentation}|\p{Extended_Pictographic}/u.test(val)) return val;
+  return '✨';
+}
+
 // ── Batch generation (topic-pool approach) ────────────────────────────────────
 
 async function generateBatch() {
@@ -246,7 +253,7 @@ async function generateBatch() {
 
   const prompt =
     `Write ${QUEUE_TARGET} fun facts — one per subject, no substitutions:\n${itemList}\n\n` +
-    `JSON array only:\n[{"type":"...","headline":"title","content":"2 sentences","emoji":"emoji"},...]`;
+    `JSON array only:\n[{"type":"...","headline":"title","content":"2 sentences","emoji":"🔥"},...]`;
 
   const response = await fetch(WORKER_URL, {
     method: 'POST',
@@ -276,7 +283,9 @@ async function generateBatch() {
 
   if (batch.length > 0) chrome.storage.local.set({ lastReward: batch[0] });
 
-  return batch.filter(r => r.type && r.headline && r.content && r.emoji);
+  return batch
+    .filter(r => r.type && r.headline && r.content && r.emoji)
+    .map(r => ({ ...r, emoji: sanitizeEmoji(r.emoji) }));
 }
 
 // ── Single generation (fallback when queue is empty) ──────────────────────────
@@ -300,7 +309,7 @@ async function generateSingle(savedRewards) {
 
   const prompt =
     `Fact about: ${topic.subject}\n` +
-    `JSON only: {"type":"${topic.type}","headline":"title","content":"2 sentences","emoji":"emoji"}`;
+    `JSON only: {"type":"${topic.type}","headline":"title","content":"2 sentences","emoji":"🔥"}`;
 
   const response = await fetch(WORKER_URL, {
     method: 'POST',
@@ -319,6 +328,7 @@ async function generateSingle(savedRewards) {
   const raw = parts.map(p => p.text ?? '').join('');
   const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
   const reward = JSON.parse(cleaned);
+  reward.emoji = sanitizeEmoji(reward.emoji);
   chrome.storage.local.set({ lastReward: reward });
   return reward;
 }

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Uptime!",
   "description": "Smart sitting reminder that rewards your breaks with fun AI-generated facts.",
-  "version": "1.2.1",
+  "version": "1.2.2",
 
   "action": {
     "default_popup": "popup.html",
