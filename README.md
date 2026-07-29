@@ -9,9 +9,19 @@
 Instead of annoying popups you dismiss, every completed break unlocks a surprise **AI-generated reward** — fun animal facts, space trivia, weird history, counterintuitive science, or a completely fictional study. The catch: you don't see the reward until *after* you stand up and wait 30 seconds.
 
 - 🌐 **Landing page:** https://uptime-landing-page-tawny.vercel.app
+- 🎬 **Promotion video:** https://www.youtube.com/watch?v=NbCy8YPEF78
 - 🎬 **Demo video:** https://www.youtube.com/watch?v=PwIlvkM06zw
 - 🏆 **Originally built for BroncoHack 2026** — Sport & Fitness / Health & Wellness track
 
+
+---
+
+## Recognition
+
+| |
+|:---:|
+| <img width="640" alt="Google's official LinkedIn account commented on Uptime!" src="screenshots/google_comment.jpg" /> |
+| *Google's official LinkedIn account commented on Uptime! on LinkedIn* |
 
 ---
 
