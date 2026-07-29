@@ -20,7 +20,7 @@ Instead of annoying popups you dismiss, every completed break unlocks a surprise
 
 | |
 |:---:|
-| <img width="640" alt="Google's official LinkedIn account commented on Uptime!" src="screenshots/google_comment.jpg" /> |
+| <img width="640" alt="Google's official LinkedIn account commented on Uptime!" src="screenshots/Google_comment.jpg" /> |
 | *Google's official LinkedIn account commented on Uptime! on LinkedIn* |
 
 ---
